@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JPS Reprise Personnel</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; background: #f8fafc; }
+    .box { background: white; border: 1px solid #ddd; border-radius: 16px; padding: 24px; max-width: 1200px; margin: auto; }
+    h1 { margin-top: 0; }
+    button { padding: 10px 14px; border: none; border-radius: 10px; background: #111827; color: white; cursor: pointer; }
+    input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; }
+    th { background: #f1f5f9; }
+    .blue { color: #2563eb; font-weight: bold; }
+    .green { color: #16a34a; font-weight: bold; }
+    .red { color: #dc2626; font-weight: bold; }
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 16px 0; }
+    .card { background: white; border: 1px solid #ddd; border-radius: 16px; padding: 16px; }
+    @media (max-width: 900px) { .cards { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>JPS Reprise Personnel</h1>
+    <p>Outil simple avec calcul automatique du montant de la prime.</p>
+
+    <div class="cards">
+      <div class="card">
+        <div>Total brut mensuel</div>
+        <div id="totalBrut" class="blue">0,00 €</div>
+      </div>
+      <div class="card">
+        <div>Total chargé mensuel</div>
+        <div id="totalCharge" class="blue">0,00 €</div>
+      </div>
+      <div class="card">
+        <div>Total annuel</div>
+        <div id="totalAnnuel" class="blue">0,00 €</div>
+      </div>
+      <div class="card">
+        <div>Marge mensuelle</div>
+        <div id="totalMarge" class="green">0,00 €</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+      <div>
+        <label>Nom du marché</label>
+        <input id="marketName" placeholder="Ex : CNRS gardiennage" />
+      </div>
+      <div>
+        <label>Prix de vente mensuel</label>
+        <input id="prixVenteMensuel" placeholder="Ex : 42500" oninput="recalc()" />
+      </div>
+    </div>
+
+    <button onclick="addRow()">Ajouter une ligne</button>
+
+    <table id="table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Brut mensuel</th>
+          <th>% prime</th>
+          <th>Montant prime</th>
+          <th>Coût chargé</th>
+          <th>Prix revient/h</th>
+          <th>Prix vente/h</th>
+          <th>Marge/h</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const rows = [];
+
+    function toNumber(v) {
+      if (!v) return 0;
+      return Number(String(v).replace(",", ".")) || 0;
+    }
+
+    function eur(v) {
+      return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(v || 0);
+    }
+
+    function addRow() {
+      rows.push({ nom: "", brut: "", pct: "", vente: "" });
+      render();
+    }
+
+    function removeRow(i) {
+      rows.splice(i, 1);
+      render();
+    }
+
+    function updateRow(i, key, value) {
+      rows[i][key] = value;
+      recalc();
+    }
+
+    function render() {
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+
+      rows.forEach((row, i) => {
+        const brut = toNumber(row.brut);
+        const pct = toNumber(row.pct);
+        const vente = toNumber(row.vente);
+        const prime = brut * pct / 100;
+        const total = brut + prime;
+        const charge = total * 1.4;
+        const revient = charge / 151.67;
+        const marge = vente ? vente - revient : 0;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><input value="${row.nom}" oninput="updateRow(${i}, 'nom', this.value)"></td>
+          <td><input value="${row.brut}" oninput="updateRow(${i}, 'brut', this.value)"></td>
+          <td><input value="${row.pct}" oninput="updateRow(${i}, 'pct', this.value)"></td>
+          <td class="blue">${prime > 0 ? eur(prime) : "-"}</td>
+          <td class="blue">${eur(charge)}</td>
+          <td class="blue">${eur(revient)}</td>
+          <td><input value="${row.vente}" oninput="updateRow(${i}, 'vente', this.value)"></td>
+          <td class="${vente ? (marge < 0 ? "red" : "green") : ""}">${vente ? eur(marge) : "-"}</td>
+          <td><button onclick="removeRow(${i})">Supprimer</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      recalc();
+    }
+
+    function recalc() {
+      let totalBrut = 0;
+      let totalCharge = 0;
+      let totalAnnuel = 0;
+
+      rows.forEach(row => {
+        const brut = toNumber(row.brut);
+        const pct = toNumber(row.pct);
+        const prime = brut * pct / 100;
+        const total = brut + prime;
+        const charge = total * 1.4;
+        totalBrut += total;
+        totalCharge += charge;
+        totalAnnuel += charge * 12;
+      });
+
+      const venteMensuelle = toNumber(document.getElementById("prixVenteMensuel").value);
+      const marge = venteMensuelle - totalCharge;
+
+      document.getElementById("totalBrut").textContent = eur(totalBrut);
+      document.getElementById("totalCharge").textContent = eur(totalCharge);
+      document.getElementById("totalAnnuel").textContent = eur(totalAnnuel);
+
+      const margeEl = document.getElementById("totalMarge");
+      margeEl.textContent = eur(marge);
+      margeEl.className = marge < 0 ? "red" : "green";
+    }
+
+    addRow();
+  </script>
+</body>
+</html>
