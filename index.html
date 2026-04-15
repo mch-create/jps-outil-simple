@@ -2,225 +2,706 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JPS Reprise Personnel</title>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
-    body { font-family: Arial; background:#f8fafc; padding:20px; }
-    .box { background:white; padding:20px; border-radius:12px; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { border:1px solid #ddd; padding:8px; }
-    th { background:#f1f5f9; }
-    input { width:100%; }
-    .blue{color:#2563eb;font-weight:bold;}
-    .green{color:#16a34a;font-weight:bold;}
-    .red{color:#dc2626;font-weight:bold;}
+    :root{
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --line:#d9dee5;
+      --text:#111827;
+      --muted:#6b7280;
+      --gold:#b78b2f;
+      --gold-soft:#e8d7a7;
+      --blue:#2563eb;
+      --green:#16a34a;
+      --orange:#d97706;
+      --red:#dc2626;
+      --dark:#111827;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#f8fafc 0%, #eef2f7 100%);
+      font-family:Arial, sans-serif;
+      color:var(--text);
+      padding:24px;
+    }
+
+    .app{
+      max-width:1800px;
+      margin:0 auto;
+      display:grid;
+      gap:20px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#111827 0%, #1f2937 70%, #2d3748 100%);
+      color:white;
+      border-radius:24px;
+      padding:24px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+      flex-wrap:wrap;
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .hero-left{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+
+    .logo-wrap{
+      width:110px;
+      height:110px;
+      border-radius:20px;
+      background:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      padding:8px;
+      border:1px solid rgba(255,255,255,0.15);
+    }
+
+    .logo-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .hero h1{
+      margin:0 0 8px;
+      font-size:30px;
+      letter-spacing:0.4px;
+    }
+
+    .hero p{
+      margin:0;
+      color:#d1d5db;
+      max-width:850px;
+      line-height:1.5;
+    }
+
+    .hero-badge{
+      background:rgba(183,139,47,0.14);
+      color:#f4d58d;
+      border:1px solid rgba(244,213,141,0.25);
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:13px;
+      font-weight:bold;
+      white-space:nowrap;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:16px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      box-shadow:0 6px 18px rgba(15,23,42,0.05);
+    }
+
+    .card .label{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    .card .value{
+      font-size:30px;
+      font-weight:700;
+    }
+
+    .blue{color:var(--blue);font-weight:700}
+    .green{color:var(--green);font-weight:700}
+    .orange{color:var(--orange);font-weight:700}
+    .red{color:var(--red);font-weight:700}
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      box-shadow:0 6px 18px rgba(15,23,42,0.05);
+    }
+
+    .panel label{
+      display:block;
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:8px;
+      color:#334155;
+    }
+
+    input, select{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #cbd5e1;
+      border-radius:12px;
+      font-size:14px;
+      background:white;
+      color:#111827;
+    }
+
+    input:focus, select:focus{
+      outline:none;
+      border-color:#94a3b8;
+      box-shadow:0 0 0 3px rgba(148,163,184,0.15);
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+    }
+
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .toolbar-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .toolbar-right{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    button{
+      border:none;
+      border-radius:12px;
+      padding:11px 16px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      background:var(--dark);
+      color:white;
+    }
+
+    button:hover{opacity:0.96}
+
+    .btn-outline{
+      background:white;
+      color:var(--dark);
+      border:1px solid #cbd5e1;
+    }
+
+    .btn-danger{
+      background:white;
+      color:var(--red);
+      border:1px solid #fecaca;
+      padding:8px 12px;
+    }
+
+    .table-panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      box-shadow:0 6px 18px rgba(15,23,42,0.05);
+    }
+
+    .table-wrap{
+      overflow:auto;
+      margin-top:14px;
+      border-radius:14px;
+      border:1px solid #e5e7eb;
+    }
+
+    table{
+      width:100%;
+      min-width:1800px;
+      border-collapse:collapse;
+      background:white;
+    }
+
+    th, td{
+      border-bottom:1px solid #e5e7eb;
+      padding:10px;
+      text-align:left;
+      font-size:14px;
+      white-space:nowrap;
+      vertical-align:middle;
+    }
+
+    th{
+      background:#f8fafc;
+      font-size:12px;
+      color:#475569;
+      text-transform:uppercase;
+      letter-spacing:0.3px;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+
+    .summary-row{
+      background:#f8fafc;
+      font-weight:700;
+    }
+
+    .summary-row td{
+      border-top:2px solid #cbd5e1;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .file-input{
+      max-width:320px;
+      background:white;
+    }
+
+    .empty-note{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    @media (max-width:1200px){
+      .cards{grid-template-columns:1fr 1fr}
+      .grid-2{grid-template-columns:1fr}
+    }
+
+    @media (max-width:700px){
+      body{padding:12px}
+      .hero{padding:18px}
+      .logo-wrap{width:86px;height:86px}
+      .cards{grid-template-columns:1fr}
+    }
   </style>
 </head>
 
 <body>
-<div class="box">
-  <h2>JPS Reprise Personnel</h2>
+  <div class="app">
+    <div class="hero">
+      <div class="hero-left">
+        <div class="logo-wrap">
+          <img src="logo-jps.png" alt="JPS Logo">
+        </div>
+        <div>
+          <h1>Jumeirah Prestige Security — Reprise du personnel</h1>
+          <p>
+            Outil interne de lecture des listes de reprise, calcul du brut total, du coût chargé,
+            du prix de revient horaire, du prix de vente et de la marge mensuelle.
+          </p>
+        </div>
+      </div>
+      <div class="hero-badge">Version interne JPS</div>
+    </div>
 
-  <input type="file" accept=".xlsx,.xls" onchange="handleImport(event)">
-  <button onclick="addRow()">Ajouter ligne</button>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Brut total mensuel</div>
+        <div id="totalBrut" class="value blue">0,00 €</div>
+      </div>
+      <div class="card">
+        <div class="label">Coût chargé mensuel</div>
+        <div id="totalCharge" class="value blue">0,00 €</div>
+      </div>
+      <div class="card">
+        <div class="label">Coût annuel</div>
+        <div id="totalAnnuel" class="value blue">0,00 €</div>
+      </div>
+      <div class="card">
+        <div class="label">Marge mensuelle totale</div>
+        <div id="totalMarge" class="value green">0,00 €</div>
+      </div>
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Nom</th>
-        <th>Fonction</th>
-        <th>Coef</th>
-        <th>Heures</th>
-        <th>Brut H</th>
-        <th>Brut Mensuel</th>
-        <th>% Prime</th>
-        <th>Prime €</th>
-        <th>Brut Total</th>
-        <th>Coût Chargé</th>
-        <th>Revient H</th>
-        <th>Vente H</th>
-        <th>Marge H</th>
-        <th>Marge Mensuelle</th>
-        <th>X</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
-</div>
+    <div class="grid-2">
+      <div class="panel">
+        <label>Nom du marché</label>
+        <input id="marketName" placeholder="Ex : Reprise personnel CNRS">
+      </div>
+      <div class="panel">
+        <label>Taux de charges patronales</label>
+        <input id="chargesRate" value="40" oninput="render()">
+        <div class="small">Exprimé en pourcentage. Exemple : 40 = 40 %</div>
+      </div>
+    </div>
 
-<script>
-const rows = [];
+    <div class="table-panel">
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <input class="file-input" type="file" accept=".xlsx,.xls" onchange="handleImport(event)">
+          <button class="btn-outline" onclick="rows.length=0; addRow();">Vider et recommencer</button>
+          <button onclick="addRow()">Ajouter une ligne</button>
+        </div>
+        <div class="toolbar-right">
+          <span class="muted">Import Excel actif</span>
+        </div>
+      </div>
+      <div class="empty-note">
+        Les colonnes du fichier peuvent être reconnues sous plusieurs noms : Emploi/Fonction, Coef/Coefficient,
+        Base mensuelle, Salaire de base, Taux horaire, ETP.
+      </div>
 
-function toNumber(v){
-  return Number(String(v).replace(",", ".")) || 0;
-}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Fonction</th>
+              <th>Coef</th>
+              <th>Heures</th>
+              <th>Brut H</th>
+              <th>Brut Mensuel</th>
+              <th>% Prime</th>
+              <th>Prime €</th>
+              <th>Brut Total</th>
+              <th>Brut Total H</th>
+              <th>Coût Chargé</th>
+              <th>Revient H</th>
+              <th>Vente H</th>
+              <th>Marge H</th>
+              <th>Marge Mensuelle</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+          <tfoot>
+            <tr class="summary-row">
+              <td colspan="4" style="text-align:right;">MOYENNES</td>
+              <td id="avgBrutH" class="blue">0,00 €</td>
+              <td id="avgBrutM" class="blue">0,00 €</td>
+              <td></td>
+              <td id="avgPrime" class="blue">0,00 €</td>
+              <td id="avgBrutTotal" class="blue">0,00 €</td>
+              <td id="avgBrutTH" class="blue">0,00 €</td>
+              <td id="avgCharge" class="blue">0,00 €</td>
+              <td id="avgRevientH" class="blue">0,00 €</td>
+              <td id="avgVenteH" class="blue">0,00 €</td>
+              <td id="avgMargeH" class="blue">0,00 €</td>
+              <td id="avgMargeM" class="blue">0,00 €</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
 
-function eur(v){
-  return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(v||0);
-}
+  <script>
+    const rows = [];
 
-function getPrimePctByCoef(c){
-  c=Number(c);
-  if(c==150||c==170)return 8;
-  return 5;
-}
-
-function addRow(){
-  rows.push({nom:"",fonction:"ADS",coef:"130",heures:"151.67",brutH:"",venteH:""});
-  render();
-}
-
-function removeRow(i){
-  rows.splice(i,1);
-  render();
-}
-
-function updateRow(i,key,val){
-  rows[i][key]=val;
-  render();
-}
-
-function render(){
-  const tbody=document.getElementById("tbody");
-  tbody.innerHTML="";
-
-  rows.forEach((r,i)=>{
-    let h=toNumber(r.heures);
-    let bh=toNumber(r.brutH);
-    let bm=bh*h;
-
-    let pct=getPrimePctByCoef(r.coef);
-    let prime=bm*pct/100;
-
-    let total=bm+prime;
-    let charge=total*1.4;
-    let revientH=h?charge/h:0;
-
-    let vente=toNumber(r.venteH);
-    let margeH=vente?vente-revientH:0;
-    let margeM=margeH*h;
-
-    const tr=document.createElement("tr");
-
-    tr.innerHTML=`
-<td><input value="${r.nom}" oninput="updateRow(${i},'nom',this.value)"></td>
-<td><input value="${r.fonction}" oninput="updateRow(${i},'fonction',this.value)"></td>
-<td><input value="${r.coef}" oninput="updateRow(${i},'coef',this.value)"></td>
-<td><input value="${r.heures}" oninput="updateRow(${i},'heures',this.value)"></td>
-<td><input value="${r.brutH}" oninput="updateRow(${i},'brutH',this.value)"></td>
-<td class="blue">${eur(bm)}</td>
-<td class="blue">${pct}%</td>
-<td class="blue">${eur(prime)}</td>
-<td class="blue">${eur(total)}</td>
-<td class="blue">${eur(charge)}</td>
-<td class="blue">${eur(revientH)}</td>
-<td><input value="${r.venteH}" oninput="updateRow(${i},'venteH',this.value)"></td>
-<td class="${margeH<0?'red':'green'}">${vente?eur(margeH):'-'}</td>
-<td class="${margeM<0?'red':'green'}">${vente?eur(margeM):'-'}</td>
-<td><button onclick="removeRow(${i})">X</button></td>
-`;
-    tbody.appendChild(tr);
-  });
-}
-
-function normalize(k){
-  return String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-}
-
-function getVal(obj,keys){
-  for(let k in obj){
-    for(let kk of keys){
-      if(normalize(k)==normalize(kk)) return obj[k];
+    function toNumber(v){
+      if(v === null || v === undefined || v === "") return 0;
+      return Number(String(v).replace(/\s/g,"").replace(",", ".")) || 0;
     }
-  }
-  return "";
-}
 
-async function handleImport(e){
-  try{
-    const file = e.target.files[0];
-    if (!file) return;
+    function eur(v){
+      return new Intl.NumberFormat("fr-FR", {
+        style:"currency",
+        currency:"EUR"
+      }).format(v || 0);
+    }
 
-    const data = await file.arrayBuffer();
-    const wb = XLSX.read(data, { type:"array" });
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+    function getChargesRate(){
+      return toNumber(document.getElementById("chargesRate").value) / 100;
+    }
 
-    rows.length = 0;
+    function getMarginClass(value){
+      if(value < 0) return "red";
+      if(value < 2) return "orange";
+      return "green";
+    }
 
-    json.forEach(l => {
-      const fonction = getVal(l, [
-        "Fonction",
-        "Emploi",
-        "POSTE",
-        "Qualifications"
-      ]) || "ADS";
+    function normalize(k){
+      return String(k || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g," ")
+        .trim();
+    }
 
-      const coef = getVal(l, [
-        "Coefficient",
-        "Coef",
-        "Code coefficient / Indice",
-        "Code coefficient indice"
-      ]) || "130";
-
-      let heures = getVal(l, [
-        "Durée mensuelle",
-        "Base Mensuelle",
-        "Duree mensuelle"
-      ]) || "";
-
-      const etp = getVal(l, ["ETP"]) || "";
-
-      if (!heures) {
-        if (etp) {
-          const etpNum = toNumber(etp);
-          heures = etpNum > 0 ? (151.67 * etpNum).toFixed(2) : "151.67";
-        } else {
-          heures = "151.67";
+    function getVal(obj, keys){
+      for(let k in obj){
+        for(let kk of keys){
+          if(normalize(k) === normalize(kk)) return obj[k];
         }
       }
+      return "";
+    }
 
-      let brutH = getVal(l, [
-        "Taux horaire",
-        "Salaire horaire"
-      ]) || "";
+    function escapeHtml(str){
+      return String(str || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;");
+    }
 
-      const brutM = getVal(l, [
-        "Salaire de base",
-        "Brut mensuel",
-        "Salaire mensuel",
-        "Base"
-      ]) || "";
+    function getPrimePctByCoef(coef){
+      const c = Number(coef);
+      if(c === 150 || c === 170) return 8;
+      return 5;
+    }
 
-      if (!brutH && brutM) {
-        const bm = toNumber(brutM);
-        const hm = toNumber(heures);
-        if (bm > 0 && hm > 0) {
-          brutH = (bm / hm).toFixed(3);
-        }
-      }
-
+    function addRow(){
       rows.push({
-        nom: getVal(l, ["Nom", "Agent"]) || "",
-        fonction: String(fonction).trim(),
-        coef: String(coef).trim(),
-        heures: String(heures).replace(",", "."),
-        brutH: String(brutH).replace(",", "."),
-        venteH: ""
+        nom:"",
+        fonction:"ADS",
+        coef:"130",
+        heures:"151.67",
+        brutH:"",
+        venteH:"",
+        primeFixe:"0"
       });
-    });
+      render();
+    }
 
-    render();
-    alert("Import OK : " + rows.length + " lignes");
+    function removeRow(i){
+      rows.splice(i,1);
+      if(rows.length === 0) addRow();
+      else render();
+    }
 
-  } catch(err){
-    console.error(err);
-    alert("Erreur import : " + err.message);
-  }
-}
-addRow();
-</script>
+    function updateRow(i,key,val){
+      rows[i][key] = val;
+      render();
+    }
+
+    function computeRow(r){
+      const heures = toNumber(r.heures);
+      const brutH = toNumber(r.brutH);
+      const brutMensuel = brutH * heures;
+
+      const primePct = getPrimePctByCoef(r.coef);
+      const primeFixe = toNumber(r.primeFixe);
+      const primePctAmount = brutMensuel * primePct / 100;
+      const prime = primePctAmount + primeFixe;
+
+      const brutTotal = brutMensuel + prime;
+      const brutTotalH = heures > 0 ? brutTotal / heures : 0;
+      const coutCharge = brutTotal * (1 + getChargesRate());
+      const revientH = heures > 0 ? coutCharge / heures : 0;
+
+      const venteH = toNumber(r.venteH);
+      const margeH = venteH > 0 ? venteH - revientH : 0;
+      const margeM = margeH * heures;
+
+      return {
+        heures, brutH, brutMensuel, primePct, primeFixe,
+        primePctAmount, prime, brutTotal, brutTotalH,
+        coutCharge, revientH, venteH, margeH, margeM
+      };
+    }
+
+    function render(){
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+
+      let totalBrut = 0;
+      let totalCharge = 0;
+      let totalAnnuel = 0;
+      let totalMarge = 0;
+
+      let sumBrutH = 0;
+      let sumBrutM = 0;
+      let sumPrime = 0;
+      let sumBrutTotal = 0;
+      let sumBrutTH = 0;
+      let sumCharge = 0;
+      let sumRevientH = 0;
+      let sumVenteH = 0;
+      let sumMargeH = 0;
+      let sumMargeM = 0;
+      let count = 0;
+
+      rows.forEach((r,i)=>{
+        const c = computeRow(r);
+
+        totalBrut += c.brutTotal;
+        totalCharge += c.coutCharge;
+        totalAnnuel += c.coutCharge * 12;
+        totalMarge += c.margeM;
+
+        if(c.heures > 0 || c.brutH > 0){
+          count++;
+          sumBrutH += c.brutH;
+          sumBrutM += c.brutMensuel;
+          sumPrime += c.prime;
+          sumBrutTotal += c.brutTotal;
+          sumBrutTH += c.brutTotalH;
+          sumCharge += c.coutCharge;
+          sumRevientH += c.revientH;
+          sumVenteH += c.venteH;
+          sumMargeH += c.margeH;
+          sumMargeM += c.margeM;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><input value="${escapeHtml(r.nom)}" oninput="updateRow(${i},'nom',this.value)"></td>
+          <td><input value="${escapeHtml(r.fonction)}" oninput="updateRow(${i},'fonction',this.value)"></td>
+          <td><input value="${escapeHtml(r.coef)}" oninput="updateRow(${i},'coef',this.value)"></td>
+          <td><input value="${escapeHtml(r.heures)}" oninput="updateRow(${i},'heures',this.value)"></td>
+          <td><input value="${escapeHtml(r.brutH)}" oninput="updateRow(${i},'brutH',this.value)"></td>
+          <td class="blue">${eur(c.brutMensuel)}</td>
+          <td class="blue">${c.primePct}%</td>
+          <td class="blue">${eur(c.prime)}</td>
+          <td class="blue">${eur(c.brutTotal)}</td>
+          <td class="blue">${eur(c.brutTotalH)}</td>
+          <td class="blue">${eur(c.coutCharge)}</td>
+          <td class="blue">${eur(c.revientH)}</td>
+          <td><input value="${escapeHtml(r.venteH)}" oninput="updateRow(${i},'venteH',this.value)"></td>
+          <td class="${c.venteH > 0 ? getMarginClass(c.margeH) : ''}">${c.venteH > 0 ? eur(c.margeH) : "-"}</td>
+          <td class="${c.venteH > 0 ? getMarginClass(c.margeH) : ''}">${c.venteH > 0 ? eur(c.margeM) : "-"}</td>
+          <td><button class="btn-danger" onclick="removeRow(${i})">Supprimer</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("totalBrut").textContent = eur(totalBrut);
+      document.getElementById("totalCharge").textContent = eur(totalCharge);
+      document.getElementById("totalAnnuel").textContent = eur(totalAnnuel);
+
+      const margeEl = document.getElementById("totalMarge");
+      margeEl.textContent = eur(totalMarge);
+      margeEl.className = "value " + getMarginClass(count > 0 ? totalMarge / count : 0);
+
+      document.getElementById("avgBrutH").textContent = eur(count ? sumBrutH / count : 0);
+      document.getElementById("avgBrutM").textContent = eur(count ? sumBrutM / count : 0);
+      document.getElementById("avgPrime").textContent = eur(count ? sumPrime / count : 0);
+      document.getElementById("avgBrutTotal").textContent = eur(count ? sumBrutTotal / count : 0);
+      document.getElementById("avgBrutTH").textContent = eur(count ? sumBrutTH / count : 0);
+      document.getElementById("avgCharge").textContent = eur(count ? sumCharge / count : 0);
+      document.getElementById("avgRevientH").textContent = eur(count ? sumRevientH / count : 0);
+      document.getElementById("avgVenteH").textContent = eur(count ? sumVenteH / count : 0);
+      document.getElementById("avgMargeH").textContent = eur(count ? sumMargeH / count : 0);
+      document.getElementById("avgMargeM").textContent = eur(count ? sumMargeM / count : 0);
+    }
+
+    async function handleImport(e){
+      try{
+        const file = e.target.files[0];
+        if(!file) return;
+
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data,{type:"array"});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws,{defval:""});
+
+        rows.length = 0;
+
+        json.forEach(l=>{
+          const fonction = getVal(l,[
+            "Fonction",
+            "Emploi",
+            "POSTE",
+            "Qualifications"
+          ]) || "ADS";
+
+          const coef = getVal(l,[
+            "Coefficient",
+            "Coef",
+            "Code coefficient / Indice",
+            "Code coefficient indice"
+          ]) || "130";
+
+          let heures = getVal(l,[
+            "Durée mensuelle",
+            "Duree mensuelle",
+            "Base Mensuelle",
+            "Base mensuelle",
+            "Durée du travail",
+            "Duree du travail"
+          ]) || "";
+
+          const etp = getVal(l,["ETP"]) || "";
+          if(!heures){
+            if(etp){
+              const etpNum = toNumber(etp);
+              heures = etpNum > 0 ? (151.67 * etpNum).toFixed(2) : "151.67";
+            } else {
+              heures = "151.67";
+            }
+          }
+
+          let brutH = getVal(l,[
+            "Taux horaire",
+            "Salaire horaire"
+          ]) || "";
+
+          const brutM = getVal(l,[
+            "Salaire de base",
+            "Brut mensuel",
+            "Salaire mensuel",
+            "Base"
+          ]) || "";
+
+          const primeAncienneteMontant = getVal(l,[
+            "prime d'ancienneté",
+            "prime anciennete",
+            "Prime ancienneté",
+            "Prime anciennete"
+          ]) || 0;
+
+          const bm = toNumber(brutM) + toNumber(primeAncienneteMontant);
+
+          if(!brutH && bm){
+            const hm = toNumber(heures);
+            if(bm > 0 && hm > 0){
+              brutH = (bm / hm).toFixed(3);
+            }
+          }
+
+          rows.push({
+            nom: getVal(l,["Nom","NOM","Agent"]) || "",
+            fonction: String(fonction).trim(),
+            coef: String(coef).trim(),
+            heures: String(heures).replace(",","."),
+            brutH: String(brutH).replace(",","."),
+            venteH:"",
+            primeFixe: String(toNumber(primeAncienneteMontant))
+          });
+        });
+
+        render();
+        alert("Import OK : " + rows.length + " lignes");
+      } catch(err){
+        console.error(err);
+        alert("Erreur import : " + err.message);
+      }
+    }
+
+    addRow();
+  </script>
 </body>
 </html>
