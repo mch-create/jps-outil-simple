@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JPS Reprise Personnel</title>
-
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
@@ -15,7 +14,6 @@
       --text:#111827;
       --muted:#6b7280;
       --gold:#b78b2f;
-      --gold-soft:#e8d7a7;
       --blue:#2563eb;
       --green:#16a34a;
       --orange:#d97706;
@@ -23,7 +21,8 @@
       --dark:#111827;
     }
 
-    *{box-sizing:border-box}
+    * { box-sizing:border-box; }
+
     body{
       margin:0;
       background:linear-gradient(180deg,#f8fafc 0%, #eef2f7 100%);
@@ -70,7 +69,6 @@
       justify-content:center;
       overflow:hidden;
       padding:8px;
-      border:1px solid rgba(255,255,255,0.15);
     }
 
     .logo-wrap img{
@@ -82,7 +80,6 @@
     .hero h1{
       margin:0 0 8px;
       font-size:30px;
-      letter-spacing:0.4px;
     }
 
     .hero p{
@@ -155,7 +152,7 @@
       color:#334155;
     }
 
-    input, select{
+    input{
       width:100%;
       padding:10px 12px;
       border:1px solid #cbd5e1;
@@ -165,7 +162,7 @@
       color:#111827;
     }
 
-    input:focus, select:focus{
+    input:focus{
       outline:none;
       border-color:#94a3b8;
       box-shadow:0 0 0 3px rgba(148,163,184,0.15);
@@ -238,6 +235,7 @@
       margin-top:14px;
       border-radius:14px;
       border:1px solid #e5e7eb;
+      background:white;
     }
 
     table{
@@ -282,7 +280,7 @@
     }
 
     .file-input{
-      max-width:320px;
+      max-width:340px;
       background:white;
     }
 
@@ -359,7 +357,7 @@
       <div class="toolbar">
         <div class="toolbar-left">
           <input class="file-input" type="file" accept=".xlsx,.xls" onchange="handleImport(event)">
-          <button class="btn-outline" onclick="rows.length=0; addRow();">Vider et recommencer</button>
+          <button class="btn-outline" onclick="resetTable()">Vider et recommencer</button>
           <button onclick="addRow()">Ajouter une ligne</button>
         </div>
         <div class="toolbar-right">
@@ -368,7 +366,7 @@
       </div>
       <div class="empty-note">
         Les colonnes du fichier peuvent être reconnues sous plusieurs noms : Emploi/Fonction, Coef/Coefficient,
-        Base mensuelle, Salaire de base, Taux horaire, ETP.
+        Base mensuelle, Salaire de base, Taux horaire, ETP, prime d’ancienneté.
       </div>
 
       <div class="table-wrap">
@@ -421,7 +419,7 @@
 
     function toNumber(v){
       if(v === null || v === undefined || v === "") return 0;
-      return Number(String(v).replace(/\s/g,"").replace(",", ".")) || 0;
+      return Number(String(v).replace(/\s/g, "").replace(",", ".")) || 0;
     }
 
     function eur(v){
@@ -471,6 +469,11 @@
       const c = Number(coef);
       if(c === 150 || c === 170) return 8;
       return 5;
+    }
+
+    function resetTable(){
+      rows.length = 0;
+      addRow();
     }
 
     function addRow(){
@@ -673,13 +676,11 @@
             "Prime anciennete"
           ]) || 0;
 
-          const bm = toNumber(brutM) + toNumber(primeAncienneteMontant);
+          const hm = toNumber(heures);
+          const bmFinal = toNumber(brutM) + toNumber(primeAncienneteMontant);
 
-          if(!brutH && bm){
-            const hm = toNumber(heures);
-            if(bm > 0 && hm > 0){
-              brutH = (bm / hm).toFixed(3);
-            }
+          if(hm > 0 && bmFinal > 0){
+            brutH = (bmFinal / hm).toFixed(3);
           }
 
           rows.push({
@@ -689,7 +690,7 @@
             heures: String(heures).replace(",","."),
             brutH: String(brutH).replace(",","."),
             venteH:"",
-            primeFixe: String(toNumber(primeAncienneteMontant))
+            primeFixe:"0"
           });
         });
 
