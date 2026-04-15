@@ -455,7 +455,29 @@
       document.getElementById("avgMargeH").textContent = eur(count ? sumMargeH / count : 0);
       document.getElementById("avgMargeM").textContent = eur(count ? sumMargeM / count : 0);
     }
+async function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+  json.forEach((line) => {
+    rows.push({
+      nom: line["Nom"] || line["NOM"] || "",
+      fonction: line["Fonction"] || line["FONCTION"] || line["Emploi"] || "ADS",
+      coef: String(line["Coefficient"] || line["Coef"] || line["Code coefficient / Indice"] || "130"),
+      heures: String(line["Durée mensuelle"] || line["Base Mensuelle"] || line["Durée du travail"] || "151.67"),
+      brutH: String(line["Taux horaire"] || line["Rémunération"] || ""),
+      venteH: ""
+    });
+  });
+
+  render();
+}
     addRow();
   </script>
 </body>
