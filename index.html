@@ -1,146 +1,207 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>JPS Reprise Personnel</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{font-family:Arial;background:#f5f7fb;padding:20px}
+.box{background:#fff;padding:20px;border-radius:14px;max-width:1400px;margin:auto}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{border:1px solid #ddd;padding:8px;font-size:13px}
+th{background:#f1f5f9}
+input{width:100%;padding:6px}
+.blue{color:#2563eb;font-weight:bold}
+.green{color:#16a34a;font-weight:bold}
+.red{color:#dc2626;font-weight:bold}
+</style>
+</head>
+
+<body>
+<div class="box">
+<h2>JPS Reprise Personnel</h2>
+
+<input type="file" onchange="handleImport(event)">
+<button onclick="addRow()">Ajouter ligne</button>
+
+<table>
+<thead>
+<tr>
+<th>Nom</th>
+<th>Fonction</th>
+<th>Coef</th>
+<th>Heures</th>
+<th>Brut H</th>
+<th>Brut Mensuel</th>
+<th>% Prime</th>
+<th>Prime €</th>
+<th>Brut Total</th>
+<th>Coût Chargé</th>
+<th>Revient H</th>
+<th>Vente H</th>
+<th>Marge H</th>
+<th>Marge M</th>
+<th>X</th>
+</tr>
+</thead>
+
+<tbody id="tbody"></tbody>
+</table>
+</div>
+
+<script>
+
+let rows = [];
+
+/* ================= UTILS ================= */
+
+function toNumber(v){
+  return Number(String(v||0).replace(",", ".")) || 0;
+}
+
+function eur(v){
+  return v ? v.toFixed(2)+" €" : "0,00 €";
+}
+
+function primeCoef(c){
+  c=Number(c);
+  if(c===150)return 8;
+  return 5;
+}
+
+/* ================= CRUD ================= */
+
+function addRow(){
+  rows.push({
+    nom:"",
+    fonction:"ADS",
+    coef:"130",
+    heures:"151.67",
+    brutH:"",
+    venteH:""
+  });
+  render();
+}
+
+function removeRow(i){
+  rows.splice(i,1);
+  render();
+}
+
+/* ================= UPDATE ================= */
+
+function updateRow(i,key,val){
+  rows[i][key]=val;
+  render();
+}
+
+/* copie prix sur meme coef */
+function updateVente(i,val){
+  const coefRef = rows[i].coef;
+
+  rows.forEach(r=>{
+    if(r.coef===coefRef){
+      r.venteH=val;
+    }
+  });
+
+  render();
+}
+
+/* ================= RENDER ================= */
+
+function render(){
+  const tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+
+  rows.forEach((r,i)=>{
+
+    const h=toNumber(r.heures);
+    const brutH=toNumber(r.brutH);
+
+    const brutM=brutH*h;
+    const pct=primeCoef(r.coef);
+    const prime=brutM*pct/100;
+    const brutT=brutM+prime;
+
+    const charge=brutT*1.4;
+    const revientH=charge/h;
+
+    const venteH=toNumber(r.venteH);
+    const margeH=venteH?venteH-revientH:0;
+    const margeM=margeH*h;
+
+    const tr=document.createElement("tr");
+
+    tr.innerHTML=`
+<td><input value="${r.nom}" onchange="updateRow(${i},'nom',this.value)"></td>
+<td><input value="${r.fonction}" onchange="updateRow(${i},'fonction',this.value)"></td>
+<td><input value="${r.coef}" onchange="updateRow(${i},'coef',this.value)"></td>
+<td><input value="${r.heures}" onchange="updateRow(${i},'heures',this.value)"></td>
+<td><input value="${r.brutH}" onchange="updateRow(${i},'brutH',this.value)"></td>
+
+<td class="blue">${eur(brutM)}</td>
+<td>${pct}%</td>
+<td class="blue">${eur(prime)}</td>
+<td class="blue">${eur(brutT)}</td>
+<td class="blue">${eur(charge)}</td>
+<td class="blue">${eur(revientH)}</td>
+
+<td><input value="${r.venteH}" onchange="updateVente(${i},this.value)"></td>
+
+<td class="${margeH<0?"red":"green"}">${venteH?eur(margeH):"-"}</td>
+<td class="${margeM<0?"red":"green"}">${venteH?eur(margeM):"-"}</td>
+
+<td><button onclick="removeRow(${i})">X</button></td>
+`;
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* ================= IMPORT ================= */
+
 async function handleImport(e){
-  try{
-    const file = e.target.files[0];
-    if(!file) return;
+  const file=e.target.files[0];
+  if(!file)return;
 
-    const data = await file.arrayBuffer();
-    const wb = XLSX.read(data, { type: "array" });
-    const ws = wb.Sheets[wb.SheetNames[0]];
+  const data=await file.arrayBuffer();
+  const wb=XLSX.read(data,{type:"array"});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const json=XLSX.utils.sheet_to_json(ws);
 
-    // Lecture brute en tableau
-    const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+  rows=[];
 
-    if (!aoa || aoa.length < 2) {
-      alert("Fichier vide ou structure non reconnue.");
-      return;
+  json.forEach(l=>{
+
+    let heures = l["Durée mensuelle"] || l["Base Mensuelle"] || 151.67;
+
+    let brutH = l["Taux horaire"] || "";
+
+    let brutM = l["Salaire de base"] || "";
+
+    if(!brutH && brutM){
+      brutH = (brutM/heures).toFixed(2);
     }
 
-    rows.length = 0;
-
-    // On prend les 2 premières lignes comme en-têtes possibles
-    const header1 = aoa[0] || [];
-    const header2 = aoa[1] || [];
-
-    // Fusion des en-têtes : ex "Rémunération" + "Taux horaire"
-    const headers = [];
-    const maxLen = Math.max(header1.length, header2.length);
-
-    for (let i = 0; i < maxLen; i++) {
-      const h1 = String(header1[i] || "").trim();
-      const h2 = String(header2[i] || "").trim();
-
-      let merged = "";
-      if (h1 && h2) merged = h1 + " " + h2;
-      else if (h1) merged = h1;
-      else if (h2) merged = h2;
-      else merged = "col_" + i;
-
-      headers.push(merged);
-    }
-
-    // On démarre les données à partir de la 3e ligne
-    const dataRows = aoa.slice(2);
-
-    dataRows.forEach((row) => {
-      if (!row || row.every(cell => String(cell || "").trim() === "")) return;
-
-      const obj = {};
-      headers.forEach((h, i) => {
-        obj[h] = row[i] ?? "";
-      });
-
-      const fonction = getVal(obj, [
-        "Fonction",
-        "Emploi",
-        "POSTE",
-        "Qualifications",
-        "Fonction Emploi",
-        "Agents POSTE",
-        "POSTE QUALIFICATIONS"
-      ]) || "ADS";
-
-      const coef = getVal(obj, [
-        "Coefficient",
-        "Coef",
-        "Code coefficient / Indice",
-        "Code coefficient indice",
-        "Coefficient Coefficient",
-        "Coef Niveau Echelon Coefficient"
-      ]) || "130";
-
-      let heures = getVal(obj, [
-        "Durée mensuelle",
-        "Duree mensuelle",
-        "Base Mensuelle",
-        "Base mensuelle",
-        "Durée du travail",
-        "Duree du travail",
-        "Rémunération Base Mensuelle",
-        "ETP"
-      ]) || "";
-
-      const etp = getVal(obj, ["ETP"]) || "";
-
-      // Si ETP donné mais pas heures mensuelles
-      if (!heures || normalize(String(heures)) === "etp") {
-        const etpNum = toNumber(etp);
-        if (etpNum > 0) {
-          heures = (151.67 * etpNum).toFixed(2);
-        } else {
-          heures = "151.67";
-        }
-      }
-
-      // Taux horaire direct
-      let brutH = getVal(obj, [
-        "Taux horaire",
-        "Rémunération Taux horaire",
-        "Salaire horaire"
-      ]) || "";
-
-      // Salaire mensuel / base
-      const brutM = getVal(obj, [
-        "Salaire de base",
-        "Brut mensuel",
-        "Salaire mensuel",
-        "Base",
-        "Rémunération Brut mensuel",
-        "Brut mensuel Base Mensuelle"
-      ]) || "";
-
-      // Prime ancienneté montant
-      const primeAncienneteMontant = getVal(obj, [
-        "prime d'ancienneté",
-        "prime anciennete",
-        "Prime ancienneté",
-        "Prime anciennete",
-        "Prime d'ancienneté",
-        "Prime ancienneté "
-      ]) || 0;
-
-      // Si brutH absent, on le calcule depuis le brut mensuel
-      const hm = toNumber(heures);
-      const bmFinal = toNumber(brutM) + toNumber(primeAncienneteMontant);
-
-      if ((!brutH || toNumber(brutH) === 0) && hm > 0 && bmFinal > 0) {
-        brutH = (bmFinal / hm).toFixed(3);
-      }
-
-      rows.push({
-        nom: getVal(obj, ["Nom", "NOM", "Agent", "Agents"]) || "",
-        fonction: String(fonction).trim() || "ADS",
-        coef: String(coef).trim() || "130",
-        heures: String(heures).replace(",", "."),
-        brutH: String(brutH).replace(",", "."),
-        venteH: "",
-        primeFixe: "0"
-      });
+    rows.push({
+      nom: l["Nom"] || l["Agent"] || "",
+      fonction: l["Fonction"] || l["Emploi"] || "ADS",
+      coef: String(l["Coefficient"] || l["Coef"] || 130),
+      heures: String(heures).replace(",","."),
+      brutH: String(brutH).replace(",","."),
+      venteH:""
     });
 
-    render();
-    alert("Import OK : " + rows.length + " lignes");
-  } catch(err){
-    console.error(err);
-    alert("Erreur import : " + err.message);
-  }
+  });
+
+  render();
 }
+
+/* init */
+addRow();
+
+</script>
+</body>
+</html>
