@@ -140,42 +140,86 @@ function getVal(obj,keys){
 
 async function handleImport(e){
   try{
-    const file=e.target.files[0];
-    const data=await file.arrayBuffer();
-    const wb=XLSX.read(data,{type:"array"});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    const json=XLSX.utils.sheet_to_json(ws);
+    const file = e.target.files[0];
+    if (!file) return;
 
-    rows.length=0;
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data, { type:"array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
-    json.forEach(l=>{
-      let heures=getVal(l,["Durée mensuelle","Base Mensuelle"])||151.67;
-      let brutH=getVal(l,["Taux horaire","Rémunération"]);
-      let brutM=getVal(l,["Salaire de base"]);
+    rows.length = 0;
 
-      if(!brutH && brutM){
-        brutH=(brutM/heures).toFixed(2);
+    json.forEach(l => {
+      const fonction = getVal(l, [
+        "Fonction",
+        "Emploi",
+        "POSTE",
+        "Qualifications"
+      ]) || "ADS";
+
+      const coef = getVal(l, [
+        "Coefficient",
+        "Coef",
+        "Code coefficient / Indice",
+        "Code coefficient indice"
+      ]) || "130";
+
+      let heures = getVal(l, [
+        "Durée mensuelle",
+        "Base Mensuelle",
+        "Duree mensuelle"
+      ]) || "";
+
+      const etp = getVal(l, ["ETP"]) || "";
+
+      if (!heures) {
+        if (etp) {
+          const etpNum = toNumber(etp);
+          heures = etpNum > 0 ? (151.67 * etpNum).toFixed(2) : "151.67";
+        } else {
+          heures = "151.67";
+        }
+      }
+
+      let brutH = getVal(l, [
+        "Taux horaire",
+        "Salaire horaire"
+      ]) || "";
+
+      const brutM = getVal(l, [
+        "Salaire de base",
+        "Brut mensuel",
+        "Salaire mensuel",
+        "Base"
+      ]) || "";
+
+      if (!brutH && brutM) {
+        const bm = toNumber(brutM);
+        const hm = toNumber(heures);
+        if (bm > 0 && hm > 0) {
+          brutH = (bm / hm).toFixed(3);
+        }
       }
 
       rows.push({
-        nom:getVal(l,["Nom","Agent"]),
-        fonction:getVal(l,["Fonction","Emploi"])||"ADS",
-        coef:getVal(l,["Coefficient","Coef"])||130,
-        heures:String(heures).replace(",","."),
-        brutH:String(brutH).replace(",","."),
-        venteH:""
+        nom: getVal(l, ["Nom", "Agent"]) || "",
+        fonction: String(fonction).trim(),
+        coef: String(coef).trim(),
+        heures: String(heures).replace(",", "."),
+        brutH: String(brutH).replace(",", "."),
+        venteH: ""
       });
     });
 
     render();
-    alert("Import OK : "+rows.length+" lignes");
+    alert("Import OK : " + rows.length + " lignes");
 
-  }catch(err){
-    alert("Erreur import");
+  } catch(err){
     console.error(err);
+    alert("Erreur import : " + err.message);
   }
 }
-
 addRow();
 </script>
 </body>
