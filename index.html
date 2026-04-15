@@ -455,6 +455,28 @@
       document.getElementById("avgMargeH").textContent = eur(count ? sumMargeH / count : 0);
       document.getElementById("avgMargeM").textContent = eur(count ? sumMargeM / count : 0);
     }
+function normalizeKey(key) {
+  return String(key || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getValue(line, possibleKeys) {
+  const entries = Object.entries(line);
+  for (const [rawKey, value] of entries) {
+    const key = normalizeKey(rawKey);
+    for (const wanted of possibleKeys) {
+      if (key === normalizeKey(wanted)) {
+        return value;
+      }
+    }
+  }
+  return "";
+}
+
 async function handleImport(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -466,17 +488,66 @@ async function handleImport(event) {
   const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
   json.forEach((line) => {
+    const fonction =
+      getValue(line, ["Fonction", "FONCTION", "Emploi", "POSTE", "Qualifications"]) || "ADS";
+
+    const coef =
+      getValue(line, [
+        "Coefficient",
+        "Coef",
+        "Code coefficient / Indice",
+        "Code coefficient indice"
+      ]) || "130";
+
+    const heures =
+      getValue(line, [
+        "Durée mensuelle",
+        "Duree mensuelle",
+        "Base Mensuelle",
+        "Base mensuelle",
+        "Durée du travail",
+        "Duree du travail"
+      ]) || "151.67";
+
+    const tauxHoraire =
+      getValue(line, [
+        "Taux horaire",
+        "Rémunération",
+        "Remuneration",
+        "Salaire horaire"
+      ]) || "";
+
+    const brutMensuelDirect =
+      getValue(line, [
+        "Brut mensuel",
+        "Salaire de base",
+        "Salaire base",
+        "Base",
+        "Salaire mensuel"
+      ]) || "";
+
+    let brutHoraireFinal = String(tauxHoraire).replace(",", ".");
+
+    if (!brutHoraireFinal && brutMensuelDirect && heures) {
+      const bm = Number(String(brutMensuelDirect).replace(",", "."));
+      const hm = Number(String(heures).replace(",", "."));
+      if (bm > 0 && hm > 0) {
+        brutHoraireFinal = String((bm / hm).toFixed(3));
+      }
+    }
+
     rows.push({
-      nom: line["Nom"] || line["NOM"] || "",
-      fonction: line["Fonction"] || line["FONCTION"] || line["Emploi"] || "ADS",
-      coef: String(line["Coefficient"] || line["Coef"] || line["Code coefficient / Indice"] || "130"),
-      heures: String(line["Durée mensuelle"] || line["Base Mensuelle"] || line["Durée du travail"] || "151.67"),
-      brutH: String(line["Taux horaire"] || line["Rémunération"] || ""),
+      nom: getValue(line, ["Nom", "NOM", "Agent"]) || "",
+      fonction: fonction,
+      coef: String(coef),
+      heures: String(heures).replace(",", "."),
+      brutH: brutHoraireFinal,
       venteH: ""
     });
   });
 
   render();
+}
 }
     addRow();
   </script>
