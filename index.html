@@ -1,574 +1,182 @@
 <!doctype html>
 <html lang="fr">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JPS Reprise Personnel</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 24px;
-      background: #f8fafc;
-      margin: 0;
-    }
-
-    .box {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 1700px;
-      margin: auto;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-    }
-
-    h1 {
-      margin-top: 0;
-      margin-bottom: 8px;
-    }
-
-    p.sub {
-      color: #475569;
-      margin-top: 0;
-    }
-
-    button {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 10px;
-      background: #111827;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.95;
-    }
-
-    .btn-danger {
-      background: white;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 14px;
-      background: white;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-      min-width: 1550px;
-    }
-
-    th, td {
-      border: 1px solid #e5e7eb;
-      padding: 10px;
-      text-align: left;
-      vertical-align: middle;
-      white-space: nowrap;
-      font-size: 14px;
-    }
-
-    th {
-      background: #f1f5f9;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .blue {
-      color: #2563eb;
-      font-weight: bold;
-    }
-
-    .green {
-      color: #16a34a;
-      font-weight: bold;
-    }
-
-    .orange {
-      color: #d97706;
-      font-weight: bold;
-    }
-
-    .red {
-      color: #dc2626;
-      font-weight: bold;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin: 20px 0;
-    }
-
-    .card {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .card-title {
-      font-size: 13px;
-      color: #64748b;
-      margin-bottom: 8px;
-    }
-
-    .card-value {
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    .top-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .panel {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      margin-top: 10px;
-    }
-
-    .summary-row {
-      background: #f8fafc;
-      font-weight: bold;
-    }
-
-    .small {
-      font-size: 12px;
-      color: #64748b;
-    }
-
-    @media (max-width: 1000px) {
-      .cards {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .top-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 700px) {
-      .cards {
-        grid-template-columns: 1fr;
-      }
-    }
+    body { font-family: Arial; background:#f8fafc; padding:20px; }
+    .box { background:white; padding:20px; border-radius:12px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ddd; padding:8px; }
+    th { background:#f1f5f9; }
+    input { width:100%; }
+    .blue{color:#2563eb;font-weight:bold;}
+    .green{color:#16a34a;font-weight:bold;}
+    .red{color:#dc2626;font-weight:bold;}
   </style>
 </head>
+
 <body>
-  <div class="box">
-    <h1>JPS Reprise Personnel</h1>
-    <p class="sub">
-      Calcul du brut total, coût chargé, prix de revient horaire, prix de vente et marge.
-    </p>
+<div class="box">
+  <h2>JPS Reprise Personnel</h2>
 
-    <div class="cards">
-      <div class="card">
-        <div class="card-title">Brut total mensuel</div>
-        <div id="totalBrut" class="card-value blue">0,00 €</div>
-      </div>
-      <div class="card">
-        <div class="card-title">Coût chargé mensuel</div>
-        <div id="totalCharge" class="card-value blue">0,00 €</div>
-      </div>
-      <div class="card">
-        <div class="card-title">Coût annuel</div>
-        <div id="totalAnnuel" class="card-value blue">0,00 €</div>
-      </div>
-      <div class="card">
-        <div class="card-title">Marge mensuelle totale</div>
-        <div id="totalMarge" class="card-value green">0,00 €</div>
-      </div>
-    </div>
+  <input type="file" accept=".xlsx,.xls" onchange="handleImport(event)">
+  <button onclick="addRow()">Ajouter ligne</button>
 
-    <div class="top-grid">
-      <div class="panel">
-        <label>Nom du marché</label>
-        <input id="marketName" placeholder="Ex : Reprise personnel CNRS" />
-      </div>
-      <div class="panel">
-        <label>Taux de charges patronales</label>
-        <input id="chargesRate" value="40" oninput="recalc()" />
-        <div class="small">Exprimé en pourcentage. Exemple : 40 = 40 %</div>
-      </div>
-    </div>
-
-  <div class="toolbar">
-  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleImport(event)">
-  <button onclick="addRow()">Ajouter une ligne</button>
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Fonction</th>
+        <th>Coef</th>
+        <th>Heures</th>
+        <th>Brut H</th>
+        <th>Brut Mensuel</th>
+        <th>% Prime</th>
+        <th>Prime €</th>
+        <th>Brut Total</th>
+        <th>Coût Chargé</th>
+        <th>Revient H</th>
+        <th>Vente H</th>
+        <th>Marge H</th>
+        <th>Marge Mensuelle</th>
+        <th>X</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
 </div>
 
-    <div class="table-wrap">
-      <table id="table">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Fonction</th>
-            <th>Coef</th>
-            <th>H mensuelles</th>
-            <th>Brut H</th>
-            <th>Brut Mensuel</th>
-            <th>% Prime</th>
-            <th>Prime €</th>
-            <th>Brut Total</th>
-            <th>Brut Total H</th>
-            <th>Coût Chargé</th>
-            <th>Revient H</th>
-            <th>Vente H</th>
-            <th>Marge H</th>
-            <th>Marge Mensuelle</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-        <tfoot>
-          <tr class="summary-row">
-            <td colspan="4" style="text-align:right;">MOYENNES</td>
-            <td id="avgBrutH" class="blue">0,00 €</td>
-            <td id="avgBrutM" class="blue">0,00 €</td>
-            <td colspan="3"></td>
-            <td id="avgBrutTH" class="blue">0,00 €</td>
-            <td id="avgCharge" class="blue">0,00 €</td>
-            <td id="avgRevientH" class="blue">0,00 €</td>
-            <td></td>
-            <td id="avgMargeH" class="blue">0,00 €</td>
-            <td id="avgMargeM" class="blue">0,00 €</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
+<script>
+const rows = [];
 
-  <script>
-    const rows = [];
-
-    function toNumber(v) {
-      if (v === null || v === undefined || v === "") return 0;
-      return Number(String(v).replace(",", ".")) || 0;
-    }
-
-    function eur(v) {
-      return new Intl.NumberFormat("fr-FR", {
-        style: "currency",
-        currency: "EUR"
-      }).format(v || 0);
-    }
-
-    function getChargesRate() {
-      return toNumber(document.getElementById("chargesRate").value) / 100;
-    }
-
-    function getMarginClass(value) {
-      if (value < 0) return "red";
-      if (value < 2) return "orange";
-      return "green";
-    }
-
-    function addRow() {
-      rows.push({
-        nom: "",
-        fonction: "ADS",
-        coef: "130",
-        heures: "151.67",
-        brutH: "",
-        venteH: ""
-      });
-      render();
-    }
-
-    function removeRow(i) {
-      rows.splice(i, 1);
-      render();
-    }
-
-    function updateRow(i, key, value) {
-      rows[i][key] = value;
-      recalc();
-    }
-
-    function render() {
-      const tbody = document.getElementById("tbody");
-      tbody.innerHTML = "";
-
-      rows.forEach((row, i) => {
-        const heures = toNumber(row.heures);
-        const brutH = toNumber(row.brutH);
-        const brutMensuel = brutH * heures;
-        const primePct = getPrimePctByCoef(row.coef);
-        const prime = brutMensuel * primePct / 100;
-        const brutTotal = brutMensuel + prime;
-        const brutTotalH = heures > 0 ? brutTotal / heures : 0;
-        const coutCharge = brutTotal * (1 + getChargesRate());
-        const revientH = heures > 0 ? coutCharge / heures : 0;
-        const venteH = toNumber(row.venteH);
-        const margeH = venteH > 0 ? venteH - revientH : 0;
-        const margeM = margeH * heures;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><input value="${escapeHtml(row.nom)}" oninput="updateRow(${i}, 'nom', this.value)"></td>
-          <td>
-            <select onchange="updateRow(${i}, 'fonction', this.value)">
-              <option value="ADS" ${row.fonction === "ADS" ? "selected" : ""}>ADS</option>
-              <option value="SSIAP 1" ${row.fonction === "SSIAP 1" ? "selected" : ""}>SSIAP 1</option>
-              <option value="SSIAP 2" ${row.fonction === "SSIAP 2" ? "selected" : ""}>SSIAP 2</option>
-              <option value="Chef de poste" ${row.fonction === "Chef de poste" ? "selected" : ""}>Chef de poste</option>
-              <option value="Responsable de site" ${row.fonction === "Responsable de site" ? "selected" : ""}>Responsable de site</option>
-            </select>
-          </td>
-          <td>
-            <select onchange="updateRow(${i}, 'coef', this.value)">
-              <option value="130" ${row.coef === "130" ? "selected" : ""}>130</option>
-              <option value="140" ${row.coef === "140" ? "selected" : ""}>140</option>
-              <option value="150" ${row.coef === "150" ? "selected" : ""}>150</option>
-              <option value="160" ${row.coef === "160" ? "selected" : ""}>160</option>
-              <option value="170" ${row.coef === "170" ? "selected" : ""}>170</option>
-            </select>
-          </td>
-          <td><input value="${row.heures}" oninput="updateRow(${i}, 'heures', this.value)"></td>
-          <td><input value="${row.brutH}" oninput="updateRow(${i}, 'brutH', this.value)"></td>
-          <td class="blue">${eur(brutMensuel)}</td>
-          <td class="blue">${primePct.toFixed(2)}%</td>
-          <td class="blue">${eur(prime)}</td>
-          <td class="blue">${eur(brutTotal)}</td>
-          <td class="blue">${eur(brutTotalH)}</td>
-          <td class="blue">${eur(coutCharge)}</td>
-          <td class="blue">${eur(revientH)}</td>
-          <td><input value="${row.venteH}" oninput="updateRow(${i}, 'venteH', this.value)"></td>
-          <td class="${venteH > 0 ? getMarginClass(margeH) : ''}">${venteH > 0 ? eur(margeH) : "-"}</td>
-          <td class="${venteH > 0 ? getMarginClass(margeM / (heures || 1)) : ''}">${venteH > 0 ? eur(margeM) : "-"}</td>
-          <td><button class="btn-danger" onclick="removeRow(${i})">Supprimer</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      recalc();
-    }
-
-    function getPrimePctByCoef(coef) {
-      const c = Number(coef);
-      if (c === 130) return 5;
-      if (c === 140) return 5;
-      if (c === 150) return 8;
-      if (c === 160) return 5;
-      if (c === 170) return 8;
-      return 5;
-    }
-
-    function escapeHtml(str) {
-      return String(str || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;");
-    }
-
-    function recalc() {
-      let totalBrut = 0;
-      let totalCharge = 0;
-      let totalAnnuel = 0;
-      let totalMarge = 0;
-
-      let sumBrutH = 0;
-      let sumBrutM = 0;
-      let sumBrutTH = 0;
-      let sumCharge = 0;
-      let sumRevientH = 0;
-      let sumMargeH = 0;
-      let sumMargeM = 0;
-      let count = 0;
-
-      rows.forEach((row) => {
-        const heures = toNumber(row.heures);
-        const brutH = toNumber(row.brutH);
-        const brutMensuel = brutH * heures;
-        const primePct = getPrimePctByCoef(row.coef);
-        const prime = brutMensuel * primePct / 100;
-        const brutTotal = brutMensuel + prime;
-        const brutTotalH = heures > 0 ? brutTotal / heures : 0;
-        const coutCharge = brutTotal * (1 + getChargesRate());
-        const revientH = heures > 0 ? coutCharge / heures : 0;
-        const venteH = toNumber(row.venteH);
-        const margeH = venteH > 0 ? venteH - revientH : 0;
-        const margeM = margeH * heures;
-
-        totalBrut += brutTotal;
-        totalCharge += coutCharge;
-        totalAnnuel += coutCharge * 12;
-        totalMarge += margeM;
-
-        if (heures > 0 || brutH > 0) {
-          count++;
-          sumBrutH += brutH;
-          sumBrutM += brutMensuel;
-          sumBrutTH += brutTotalH;
-          sumCharge += coutCharge;
-          sumRevientH += revientH;
-          sumMargeH += margeH;
-          sumMargeM += margeM;
-        }
-      });
-
-      document.getElementById("totalBrut").textContent = eur(totalBrut);
-      document.getElementById("totalCharge").textContent = eur(totalCharge);
-      document.getElementById("totalAnnuel").textContent = eur(totalAnnuel);
-
-      const margeEl = document.getElementById("totalMarge");
-      margeEl.textContent = eur(totalMarge);
-      margeEl.className = "card-value " + getMarginClass(count > 0 ? totalMarge / count : 0);
-
-      document.getElementById("avgBrutH").textContent = eur(count ? sumBrutH / count : 0);
-      document.getElementById("avgBrutM").textContent = eur(count ? sumBrutM / count : 0);
-      document.getElementById("avgBrutTH").textContent = eur(count ? sumBrutTH / count : 0);
-      document.getElementById("avgCharge").textContent = eur(count ? sumCharge / count : 0);
-      document.getElementById("avgRevientH").textContent = eur(count ? sumRevientH / count : 0);
-      document.getElementById("avgMargeH").textContent = eur(count ? sumMargeH / count : 0);
-      document.getElementById("avgMargeM").textContent = eur(count ? sumMargeM / count : 0);
-    }
-function normalizeKey(key) {
-  return String(key || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function toNumber(v){
+  return Number(String(v).replace(",", ".")) || 0;
 }
 
-function getValue(line, possibleKeys) {
-  const entries = Object.entries(line);
-  for (const [rawKey, value] of entries) {
-    const key = normalizeKey(rawKey);
-    for (const wanted of possibleKeys) {
-      if (key === normalizeKey(wanted)) {
-        return value;
-      }
+function eur(v){
+  return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(v||0);
+}
+
+function getPrimePctByCoef(c){
+  c=Number(c);
+  if(c==150||c==170)return 8;
+  return 5;
+}
+
+function addRow(){
+  rows.push({nom:"",fonction:"ADS",coef:"130",heures:"151.67",brutH:"",venteH:""});
+  render();
+}
+
+function removeRow(i){
+  rows.splice(i,1);
+  render();
+}
+
+function updateRow(i,key,val){
+  rows[i][key]=val;
+  render();
+}
+
+function render(){
+  const tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+
+  rows.forEach((r,i)=>{
+    let h=toNumber(r.heures);
+    let bh=toNumber(r.brutH);
+    let bm=bh*h;
+
+    let pct=getPrimePctByCoef(r.coef);
+    let prime=bm*pct/100;
+
+    let total=bm+prime;
+    let charge=total*1.4;
+    let revientH=h?charge/h:0;
+
+    let vente=toNumber(r.venteH);
+    let margeH=vente?vente-revientH:0;
+    let margeM=margeH*h;
+
+    const tr=document.createElement("tr");
+
+    tr.innerHTML=`
+<td><input value="${r.nom}" oninput="updateRow(${i},'nom',this.value)"></td>
+<td><input value="${r.fonction}" oninput="updateRow(${i},'fonction',this.value)"></td>
+<td><input value="${r.coef}" oninput="updateRow(${i},'coef',this.value)"></td>
+<td><input value="${r.heures}" oninput="updateRow(${i},'heures',this.value)"></td>
+<td><input value="${r.brutH}" oninput="updateRow(${i},'brutH',this.value)"></td>
+<td class="blue">${eur(bm)}</td>
+<td class="blue">${pct}%</td>
+<td class="blue">${eur(prime)}</td>
+<td class="blue">${eur(total)}</td>
+<td class="blue">${eur(charge)}</td>
+<td class="blue">${eur(revientH)}</td>
+<td><input value="${r.venteH}" oninput="updateRow(${i},'venteH',this.value)"></td>
+<td class="${margeH<0?'red':'green'}">${vente?eur(margeH):'-'}</td>
+<td class="${margeM<0?'red':'green'}">${vente?eur(margeM):'-'}</td>
+<td><button onclick="removeRow(${i})">X</button></td>
+`;
+    tbody.appendChild(tr);
+  });
+}
+
+function normalize(k){
+  return String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function getVal(obj,keys){
+  for(let k in obj){
+    for(let kk of keys){
+      if(normalize(k)==normalize(kk)) return obj[k];
     }
   }
   return "";
 }
 
-async function handleImport(event) {
-  try {
-    const file = event.target.files[0];
-    if (!file) {
-      alert("Aucun fichier sélectionné.");
-      return;
-    }
+async function handleImport(e){
+  try{
+    const file=e.target.files[0];
+    const data=await file.arrayBuffer();
+    const wb=XLSX.read(data,{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const json=XLSX.utils.sheet_to_json(ws);
 
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    rows.length=0;
 
-    if (!json || json.length === 0) {
-      alert("Le fichier Excel est vide ou illisible.");
-      return;
-    }
+    json.forEach(l=>{
+      let heures=getVal(l,["Durée mensuelle","Base Mensuelle"])||151.67;
+      let brutH=getVal(l,["Taux horaire","Rémunération"]);
+      let brutM=getVal(l,["Salaire de base"]);
 
-    console.log("Colonnes détectées :", Object.keys(json[0]));
-    rows.length = 0;
-
-    json.forEach((line) => {
-      const fonction =
-        getValue(line, ["Fonction", "FONCTION", "Emploi", "POSTE", "Qualifications"]) || "ADS";
-
-      const coef =
-        getValue(line, [
-          "Coefficient",
-          "Coef",
-          "Code coefficient / Indice",
-          "Code coefficient indice"
-        ]) || "130";
-
-      const heures =
-        getValue(line, [
-          "Durée mensuelle",
-          "Duree mensuelle",
-          "Base Mensuelle",
-          "Base mensuelle",
-          "Durée du travail",
-          "Duree du travail"
-        ]) || "151.67";
-
-      const tauxHoraire =
-        getValue(line, [
-          "Taux horaire",
-          "Rémunération",
-          "Remuneration",
-          "Salaire horaire"
-        ]) || "";
-
-      const brutMensuelDirect =
-        getValue(line, [
-          "Brut mensuel",
-          "Salaire de base",
-          "Salaire base",
-          "Base",
-          "Salaire mensuel"
-        ]) || "";
-
-      let brutHoraireFinal = String(tauxHoraire).replace(",", ".");
-
-      if (!brutHoraireFinal && brutMensuelDirect && heures) {
-        const bm = Number(String(brutMensuelDirect).replace(",", "."));
-        const hm = Number(String(heures).replace(",", "."));
-        if (bm > 0 && hm > 0) {
-          brutHoraireFinal = String((bm / hm).toFixed(3));
-        }
+      if(!brutH && brutM){
+        brutH=(brutM/heures).toFixed(2);
       }
 
       rows.push({
-        nom: getValue(line, ["Nom", "NOM", "Agent"]) || "",
-        fonction: fonction,
-        coef: String(coef),
-        heures: String(heures).replace(",", "."),
-        brutH: brutHoraireFinal,
-        venteH: ""
+        nom:getVal(l,["Nom","Agent"]),
+        fonction:getVal(l,["Fonction","Emploi"])||"ADS",
+        coef:getVal(l,["Coefficient","Coef"])||130,
+        heures:String(heures).replace(",","."),
+        brutH:String(brutH).replace(",","."),
+        venteH:""
       });
     });
 
     render();
-    alert("Import terminé : " + rows.length + " ligne(s).");
-  } catch (error) {
-    console.error(error);
-    alert("Erreur import : " + error.message);
+    alert("Import OK : "+rows.length+" lignes");
+
+  }catch(err){
+    alert("Erreur import");
+    console.error(err);
   }
 }
-  render();
-}
-}
-    addRow();
-  </script>
+
+addRow();
+</script>
 </body>
 </html>
