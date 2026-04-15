@@ -222,9 +222,10 @@
       </div>
     </div>
 
-    <div class="toolbar">
-      <button onclick="addRow()">Ajouter une ligne</button>
-    </div>
+  <div class="toolbar">
+  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleImport(event)">
+  <button onclick="addRow()">Ajouter une ligne</button>
+</div>
 
     <div class="table-wrap">
       <table id="table">
