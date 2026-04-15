@@ -478,74 +478,93 @@ function getValue(line, possibleKeys) {
 }
 
 async function handleImport(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const data = await file.arrayBuffer();
-  const workbook = XLSX.read(data, { type: "array" });
-  const sheetName = workbook.SheetNames[0];
-  const sheet = workbook.Sheets[sheetName];
-  const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-  json.forEach((line) => {
-    const fonction =
-      getValue(line, ["Fonction", "FONCTION", "Emploi", "POSTE", "Qualifications"]) || "ADS";
-
-    const coef =
-      getValue(line, [
-        "Coefficient",
-        "Coef",
-        "Code coefficient / Indice",
-        "Code coefficient indice"
-      ]) || "130";
-
-    const heures =
-      getValue(line, [
-        "Durée mensuelle",
-        "Duree mensuelle",
-        "Base Mensuelle",
-        "Base mensuelle",
-        "Durée du travail",
-        "Duree du travail"
-      ]) || "151.67";
-
-    const tauxHoraire =
-      getValue(line, [
-        "Taux horaire",
-        "Rémunération",
-        "Remuneration",
-        "Salaire horaire"
-      ]) || "";
-
-    const brutMensuelDirect =
-      getValue(line, [
-        "Brut mensuel",
-        "Salaire de base",
-        "Salaire base",
-        "Base",
-        "Salaire mensuel"
-      ]) || "";
-
-    let brutHoraireFinal = String(tauxHoraire).replace(",", ".");
-
-    if (!brutHoraireFinal && brutMensuelDirect && heures) {
-      const bm = Number(String(brutMensuelDirect).replace(",", "."));
-      const hm = Number(String(heures).replace(",", "."));
-      if (bm > 0 && hm > 0) {
-        brutHoraireFinal = String((bm / hm).toFixed(3));
-      }
+  try {
+    const file = event.target.files[0];
+    if (!file) {
+      alert("Aucun fichier sélectionné.");
+      return;
     }
 
-    rows.push({
-      nom: getValue(line, ["Nom", "NOM", "Agent"]) || "",
-      fonction: fonction,
-      coef: String(coef),
-      heures: String(heures).replace(",", "."),
-      brutH: brutHoraireFinal,
-      venteH: ""
-    });
-  });
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
+    if (!json || json.length === 0) {
+      alert("Le fichier Excel est vide ou illisible.");
+      return;
+    }
+
+    console.log("Colonnes détectées :", Object.keys(json[0]));
+    rows.length = 0;
+
+    json.forEach((line) => {
+      const fonction =
+        getValue(line, ["Fonction", "FONCTION", "Emploi", "POSTE", "Qualifications"]) || "ADS";
+
+      const coef =
+        getValue(line, [
+          "Coefficient",
+          "Coef",
+          "Code coefficient / Indice",
+          "Code coefficient indice"
+        ]) || "130";
+
+      const heures =
+        getValue(line, [
+          "Durée mensuelle",
+          "Duree mensuelle",
+          "Base Mensuelle",
+          "Base mensuelle",
+          "Durée du travail",
+          "Duree du travail"
+        ]) || "151.67";
+
+      const tauxHoraire =
+        getValue(line, [
+          "Taux horaire",
+          "Rémunération",
+          "Remuneration",
+          "Salaire horaire"
+        ]) || "";
+
+      const brutMensuelDirect =
+        getValue(line, [
+          "Brut mensuel",
+          "Salaire de base",
+          "Salaire base",
+          "Base",
+          "Salaire mensuel"
+        ]) || "";
+
+      let brutHoraireFinal = String(tauxHoraire).replace(",", ".");
+
+      if (!brutHoraireFinal && brutMensuelDirect && heures) {
+        const bm = Number(String(brutMensuelDirect).replace(",", "."));
+        const hm = Number(String(heures).replace(",", "."));
+        if (bm > 0 && hm > 0) {
+          brutHoraireFinal = String((bm / hm).toFixed(3));
+        }
+      }
+
+      rows.push({
+        nom: getValue(line, ["Nom", "NOM", "Agent"]) || "",
+        fonction: fonction,
+        coef: String(coef),
+        heures: String(heures).replace(",", "."),
+        brutH: brutHoraireFinal,
+        venteH: ""
+      });
+    });
+
+    render();
+    alert("Import terminé : " + rows.length + " ligne(s).");
+  } catch (error) {
+    console.error(error);
+    alert("Erreur import : " + error.message);
+  }
+}
   render();
 }
 }
